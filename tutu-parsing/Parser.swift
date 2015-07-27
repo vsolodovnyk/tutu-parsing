@@ -13,6 +13,46 @@ import Darwin
 
 let realm = Realm()
 
+func populateTrainsToSchedule() {
+    let trains = realm.objects(TrainNP)
+    let routes = realm.objects(Route)
+    
+    realm.write {
+        realm.delete(routes)
+        for train in trains {
+            let trainSchedule = Train()
+            trainSchedule.trainId = train.np
+            realm.add(trainSchedule, update: true)
+            var routeNumber = 1
+            for routePoint in train.routesTUTU {
+                let code = routePoint.code.toInt()!
+                if let station = realm.objectForPrimaryKey(Station.self, key: code) {
+                    if station.relatedStations.count == 0 {
+                        let routeSchedule = Route()
+                        routeSchedule.station = station
+                        routeSchedule.arrival = routePoint.prib
+                        routeSchedule.departure = routePoint.otpr
+                        routeSchedule.time = routePoint.v_puti
+                        routeSchedule.stojanka = routePoint.stojanka
+                        if let kmIndex = routePoint.kilometraz.rangeOfString(" км") {
+                            routeSchedule.kilometraz = routePoint.kilometraz.substringToIndex(kmIndex.startIndex)
+                        } else {
+                            routeSchedule.kilometraz = routePoint.kilometraz
+                        }
+                        if let daysIndex = routePoint.v_puti.rangeOfString(" д") {
+                            routeSchedule.daysOnTheRoad = routePoint.v_puti.substringToIndex(daysIndex.startIndex).toInt()!
+                        }
+                        routeSchedule.numberInRoute = routeNumber
+                        routeNumber++
+                        trainSchedule.route.append(routeSchedule)
+                    }
+                }
+            }
+        }
+    }
+    println("Populate trains from TUTU to Schedule Done!")
+}
+
 func populateMapPointName() {
     let mapPoints = realm.objects(RouteMap)
     realm.write {
@@ -22,6 +62,9 @@ func populateMapPointName() {
                 name = name.substringFromIndex(startIndex)
                 if let endIndex = name.rangeOfString("<\\/b>")?.startIndex {
                     name = name.substringToIndex(endIndex)
+                }
+                if let bracketIndex = name.rangeOfString("(")?.startIndex {
+                    name = name.substringToIndex(bracketIndex)
                 }
             }
             mapPoint.name = name
@@ -43,108 +86,10 @@ func populateMapPointName() {
     println("RouteMap add Station names done!")
 }
 
-func correctBrokenStationsInRoutes (brokenStation:[String]) {
-    let routes = realm.objects(RouteTUTU)
-    for (index, route) in enumerate(routes) {
-        if route.prib.isEmpty {
-            var nextRoute = routes[index + 1]
-            let currentStations = realm.objects(Station).filter("code == \(route.code)")
-            let nextStations = realm.objects(Station).filter("code == \(nextRoute.code)")
-            
-            if let currentStation = currentStations.first, let nextStation = nextStations.first {
-                if route.kilometraz == nextRoute.kilometraz {
-                    for broken in brokenStation {
-                        if route.code == broken {
-                            realm.write {
-                                let nameTemp = route.name
-                                let pribTemp = route.prib
-                                let otprTemp = route.otpr
-                                let kilometrazTemp = route.kilometraz
-                                let codeTemp = route.code
-                                let stojankaTemp = route.stojanka
-                                let v_putiTemp = route.v_puti
-                                
-                                
-                                route.name = nextRoute.name
-                                route.prib = nextRoute.prib
-                                route.otpr = nextRoute.otpr
-                                route.kilometraz = nextRoute.kilometraz
-                                route.code = nextRoute.code
-                                route.stojanka = nextRoute.stojanka
-                                route.v_puti = nextRoute.v_puti
-                                
-                                routes[index + 1].name = nameTemp
-                                routes[index + 1].prib = pribTemp
-                                routes[index + 1].otpr = otprTemp
-                                routes[index + 1].kilometraz = kilometrazTemp
-                                routes[index + 1].code = codeTemp
-                                routes[index + 1].stojanka = stojankaTemp
-                                routes[index + 1].v_puti = v_putiTemp
-                                
-                                //                            println(routes[index + 1].name)
-                                
-                                for train in route.trains {
-                                    println("начальная в  \(train.np)")
-                                }
-                            }
-                        }
-                    }
-                   
-                }
-            }
-        }
-        if route.otpr.isEmpty {
-            var nextRoute = routes[index - 1]
-            let currentStations = realm.objects(Station).filter("code == \(route.code)")
-            let nextStations = realm.objects(Station).filter("code == \(nextRoute.code)")
-            
-            if let currentStation = currentStations.first, let nextStation = nextStations.first {
-                if route.prib == nextRoute.prib {
-                    for broken in brokenStation {
-
-                        if route.code == broken {
-                            realm.write {
-                                let nameTemp = route.name
-                                let pribTemp = route.prib
-                                let otprTemp = route.otpr
-                                let kilometrazTemp = route.kilometraz
-                                let codeTemp = route.code
-                                let stojankaTemp = route.stojanka
-                                let v_putiTemp = route.v_puti
-                                
-                                route.name = nextRoute.name
-                                route.prib = nextRoute.prib
-                                route.otpr = nextRoute.otpr
-                                route.kilometraz = nextRoute.kilometraz
-                                route.code = nextRoute.code
-                                route.stojanka = nextRoute.stojanka
-                                route.v_puti = nextRoute.v_puti
-                                
-                                routes[index - 1].name = nameTemp
-                                routes[index - 1].prib = pribTemp
-                                routes[index - 1].otpr = otprTemp
-                                routes[index - 1].kilometraz = kilometrazTemp
-                                routes[index - 1].code = codeTemp
-                                routes[index - 1].stojanka = stojankaTemp
-                                routes[index - 1].v_puti = v_putiTemp
-                                
-                                //                            println(routes[index + 1].name)
-                                
-                                for train in route.trains {
-                                    println("конечная в  \(train.np)")
-                               }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-}
-
 func printRelatedStations () {
-    let stations = realm.objects(Station)
+    let sortProperties = [SortDescriptor(property: "name_ru", ascending: true), SortDescriptor(property: "code", ascending: false)]
+
+    let stations = realm.objects(Station).sorted(sortProperties)
     var i = 0
     for (index, station) in enumerate(stations) {
         if station.relatedStations.count > 0 {
@@ -168,9 +113,22 @@ func populateNamesFromTUTU () {
     realm.write {
         for route in routes {
             let station = Station()
-            station.name_ru = route.name
+            var name = route.name
+            if let bracketIndex = name.rangeOfString("(")?.startIndex {
+                name = name.substringToIndex(bracketIndex)
+            }
+            station.name_ru = name
+            station.code = route.code.toInt()!
             station.code = route.code.toInt()!
             realm.add(station, update: true)
+        }
+        let stations = realm.objects(Station)
+        for station in stations {
+            let routemap = realm.objects(RouteMap).filter("name == '\(station.name_ru)'")
+            if let routeStation = routemap.first {
+                station.latitude = routeStation.latitude
+                station.longitude = routeStation.longitude
+            }
         }
     }
 }
@@ -210,59 +168,31 @@ func deleteRelatedStations () {
 }
 
 func populateRelatedStationsFromTUTU () {
+    let stations = realm.objects(Station).filter("latitude == 0.0")
     let routes = realm.objects(RouteTUTU)
-    
     realm.write {
-        for (index, route) in enumerate(routes) {
-            let flagLast = index == routes.count - 1 ? false : route.prib == routes[index + 1].prib
-
-            if route.prib.isEmpty {
-                
-                let nextRoute = routes[index + 1]
-                let currentStations = realm.objects(Station).filter("code == \(route.code)")
-                let nextStations = realm.objects(Station).filter("code == \(nextRoute.code)")
-
-                if let currentStation = currentStations.first, let nextStation = nextStations.first {
-                    if route.kilometraz == nextRoute.kilometraz {
-                        var isAlready = false
-                        for relSt in nextStation.relatedStations {
-                            if currentStation.code == relSt.code {
-                                isAlready = true
+        for station in stations {
+            println("\(station.code) \(station.name_ru) ")
+            for (index, route) in enumerate(routes) {
+                if route.code == "\(station.code)" {
+                    if index < routes.count {
+                        if routes[index + 1].prib == route.prib && routes[index + 1].otpr == route.otpr {
+                            if let relSt = realm.objectForPrimaryKey(Station.self, key: routes[index + 1].code.toInt()!) {
+                                 station.addRelatedStation(relSt)
                             }
-                        }
-                        if !isAlready {
-                            nextStation.relatedStations.append(currentStation)
+                           
                         }
                     }
+                    
                 }
             }
-            
-//            let flagFirst = index < 1 ? false : route.otpr == routes[index - 1].otpr
-//            
-//            if route.otpr.isEmpty || flagFirst {
-//                
-//                let nextRoute = routes[index - 1]
-//                let currentStations = realm.objects(Station).filter("code == \(route.code)")
-//                let nextStations = realm.objects(Station).filter("code == \(nextRoute.code)")
-//                
-//                if let currentStation = currentStations.first, let nextStation = nextStations.first {
-//                    if route.kilometraz == nextRoute.kilometraz {
-//                        var isAlready = false
-//                        for relSt in nextStation.relatedStations {
-//                            if currentStation.code == relSt.code {
-//                                isAlready = true
-//                            }
-//                        }
-//                        if !isAlready {
-//                            nextStation.relatedStations.append(currentStation)
-//                        }
-//                    }
-//                }
-//            }
-
         }
     }
-    println("Finish write Station")
+        
+    
+    println(stations.count)
+    
+    println("Finish write Related Stations")
 }
 
 func schedule () {
@@ -517,48 +447,8 @@ func trainParse() {
     }
 }
 
-func qw () {
-    
-    Alamofire.request(.GET, "http://www.tutu.ru/poezda/search_train.php", parameters: ["train": 1 ])
-        .responseString { (request, response, string, error) in
-            
-            let html = string
-            //                println(html)
-            
-            var err : NSError?
-            var parser     = HTMLParser(html: html!, error: &err)
-            if err != nil {
-                //                        println(err)
-                exit(1)
-            }
-            
-            var bodyNode = parser.body
-            
-            realm.beginWrite()
-            if let inputNodes = bodyNode?.findChildTags("a") {
-                for node in inputNodes {
-                    //                            println(node.contents)
-                    
-                    let href = node.getAttributeNamed("href")
-                    if let indexRange = href.rangeOfString("np=") {
-                        let number = href.substringFromIndex(indexRange.endIndex)
-                        //                                println(number)
-                        let train = TrainNP()
-                        train.np = number
-                        realm.add(train, update: true)
-                    }
-                    
-                }
-            }
-            realm.commitWrite()
-            
-    }
-    
-}
-
 extension String {
     func removeTabs() -> String {
         return self.stringByReplacingOccurrencesOfString("\t", withString: "", options: NSStringCompareOptions.LiteralSearch, range: nil).stringByReplacingOccurrencesOfString("\n", withString: "", options: NSStringCompareOptions.LiteralSearch, range: nil).stringByReplacingOccurrencesOfString("\r", withString: "", options: NSStringCompareOptions.LiteralSearch, range: nil)
     }
-    
 }

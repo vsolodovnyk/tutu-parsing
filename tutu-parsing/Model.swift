@@ -40,6 +40,15 @@ class Station: Object {
         return "code"
     }
 
+    func addRelatedStation (station: Station) -> Bool {
+        for rel in self.relatedStations {
+            if rel.code == station.code {
+                return false
+            }
+        }
+        self.relatedStations.append(station)
+        return true
+    }
 }
 
 class Train: Object {
@@ -51,7 +60,7 @@ class Train: Object {
     dynamic var periodicity = ""
     dynamic var stationArrival: Station?
     dynamic var stationDeparture: Station?
-    dynamic var trainId = 0
+    dynamic var trainId = ""
     dynamic var travelTime = ""
     dynamic var route = List<Route>()
     
@@ -121,33 +130,3 @@ class TrainNP: Object {
         return "np"
     }
 }
-//  v0
-//class RouteMap: Object {
-//    dynamic var points = ""
-//}
-//
-//class Route: Object {
-//    dynamic var code = ""
-//    dynamic var name = ""
-//    dynamic var prib = ""
-//    dynamic var stojanka = ""
-//    dynamic var otpr = ""
-//    dynamic var kilometraz = ""
-//    dynamic var v_puti = ""
-//    
-//}
-//
-//class TrainNP: Object {
-//    dynamic var np = ""
-//    dynamic var schedule = ""
-//    dynamic var route = ""
-//    dynamic var routeMap = ""
-//    dynamic var name = ""
-//    let routes = List<Route>()
-//    let routesMap = List<RouteMap>()
-//    
-//        
-//    override static func primaryKey() -> String? {
-//        return "np"
-//    }
-//}

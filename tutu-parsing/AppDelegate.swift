@@ -17,21 +17,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         
-        setSchemaVersion(3, Realm.defaultPath, { migration, oldSchemaVersion in
+        setSchemaVersion(4, Realm.defaultPath, { migration, oldSchemaVersion in
          })
-        
-//        realm.invalidate()
         
 //        populateStationsFromTUTU()
 //        populateNamesFromTUTU()
-//        deleteRelatedStations()
-//        populateRelatedStationsFromTUTU()
-//        correctBrokenStationsInRoutes(["2204000", "2200000", "2000000", "2708803"])
-//        deleteRelatedStations()
-//        populateRelatedStationsFromTUTU()
 //        populateMapPointName()
-
-        printRelatedStations()
+//        deleteRelatedStations()
+//        populateRelatedStationsFromTUTU()
+        populateTrainsToSchedule()
+//        printRelatedStations()
         
         return true
     }

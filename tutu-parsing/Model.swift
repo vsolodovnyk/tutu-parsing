@@ -42,19 +42,53 @@ class Station: Object {
 
 }
 
+class Train: Object {
+    dynamic var arrival = ""
+    dynamic var daysOnTheRoad = 0
+    dynamic var departure = ""
+    dynamic var name = ""
+    dynamic var number = ""
+    dynamic var periodicity = ""
+    dynamic var stationArrival: Station?
+    dynamic var stationDeparture: Station?
+    dynamic var trainId = 0
+    dynamic var travelTime = ""
+    dynamic var route = List<Route>()
+    
+    dynamic var arrivalToShow = ""
+    dynamic var departureToShow = ""
+    dynamic var numberInRouteForStationFrom = 0
+    dynamic var numberInRouteForStationTo = 0
+    dynamic var daysOnTheRoadTo = 0
+    dynamic var daysOnTheRoadFrom = 0
+    
+    override static func ignoredProperties() -> [String] {
+        return ["arrivalToShow",
+            "departureToShow",
+            "numberInRouteForStationFrom",
+            "numberInRouteForStationTo",
+            "daysOnTheRoadTo",
+            "daysOnTheRoadFrom"]
+    }
+    override class func primaryKey() -> String {
+        return "trainId"
+    }
+}
 
 
 class Route: Object {
-    dynamic var code = ""
-    dynamic var name = ""
-    dynamic var prib = ""
-    dynamic var stojanka = ""
-    dynamic var otpr = ""
-    dynamic var kilometraz = ""
-    dynamic var v_puti = ""
-    var trains: [TrainNP] {
-        return linkingObjects(TrainNP.self, forProperty: "routes")
+    dynamic var arrival  = ""
+    dynamic var departure = ""
+    dynamic var numberInRoute = 0
+    dynamic var daysOnTheRoad = 0
+    dynamic var station: Station?
+    
+    var train: [Train] {
+        return linkingObjects(Train.self, forProperty: "route")
     }
+    dynamic var stojanka = ""
+    dynamic var kilometraz = ""
+    dynamic var time = ""
 }
 
 class RouteTUTU: Object {
@@ -71,13 +105,14 @@ class RouteTUTU: Object {
 }
 
 
+
+
 class TrainNP: Object {
     dynamic var np = ""
     dynamic var schedule = ""
     dynamic var route = ""
     dynamic var routeMap = ""
     dynamic var name = ""
-    let routes = List<Route>()
     let routesTUTU = List<RouteTUTU>()
     let routesMap = List<RouteMap>()
     

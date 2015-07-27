@@ -13,27 +13,6 @@ import Darwin
 
 let realm = Realm()
 
-
-func pushRoutesToRoutesTUTU () {
-    realm.write {
-        let trains = realm.objects(TrainNP)
-        for train in trains {
-            for route in train.routes {
-                let routeTUTU = RouteTUTU()
-                routeTUTU.code = route.code
-                routeTUTU.prib = route.prib
-                routeTUTU.otpr = route.otpr
-                routeTUTU.kilometraz = route.kilometraz
-                routeTUTU.v_puti = route.v_puti
-                routeTUTU.name = route.name
-                routeTUTU.stojanka = route.stojanka
-                train.routesTUTU.append(routeTUTU)
-            }
-        }
-    }
-}
-
-
 func populateMapPointName() {
     let mapPoints = realm.objects(RouteMap)
     realm.write {

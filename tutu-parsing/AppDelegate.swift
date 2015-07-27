@@ -17,7 +17,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         
-        setSchemaVersion(2, Realm.defaultPath, { migration, oldSchemaVersion in
+        setSchemaVersion(3, Realm.defaultPath, { migration, oldSchemaVersion in
          })
         
 //        realm.invalidate()
@@ -30,7 +30,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //        deleteRelatedStations()
 //        populateRelatedStationsFromTUTU()
 //        populateMapPointName()
-        
+
         printRelatedStations()
         
         return true
